@@ -15,6 +15,9 @@ def scrypt_crypto_footer(passwd, crypto_footer, length):
 	N = 1 << crypto_footer['N_factor']
 	r = 1 << crypto_footer['r_factor']
 	p = 1 << crypto_footer['p_factor']
+	print "N=%d" % N
+	print "r=%d" % r
+	print "p=%d" % p
 	return scrypt.hash(passwd, crypto_footer['salt'], N, r, p, length)
 
 def scrypt_keymaster(passwd, crypto_footer, privkey):
@@ -30,7 +33,10 @@ def scrypt_keymaster(passwd, crypto_footer, privkey):
 	buf += "\x00" * ((privkey.n.bit_length() / 8) - len(buf))
 
 	#Signing the blob
-	signature = ("%X" % privkey.sign(buf,'')[0]).decode("hex")
+	signature = "%X" % privkey.sign(buf,'')[0]
+	if len(signature) % 2 != 0:
+		signature = "0" + signature
+	signature = signature.decode("hex")
 
 	#Getting the final intermediate key (+IV)	
 	return scrypt_crypto_footer(signature, crypto_footer, KEY_LEN_BYTES + IV_LEN_BYTES)
